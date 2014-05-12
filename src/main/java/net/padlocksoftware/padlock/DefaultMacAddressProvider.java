@@ -207,15 +207,14 @@ public class DefaultMacAddressProvider implements MacAddressProvider {
       } catch (Exception ex) {
         logger.log(Level.FINE, null, ex);
       }
-
-      // may not have found any
-      if (!addresses.isEmpty()) {
-        return addresses;
-      }
     }
 
-    // otherwise default to JDK1.5 way
-    return useShellToFindAddresses();
+    Set<String> addressesFromShell = useShellToFindAddresses();
+    if (addressesFromShell != null) {
+      addresses.addAll(addressesFromShell);
+    }
+    
+    return addresses;
   }
 
   private Set<String> useShellToFindAddresses() {
