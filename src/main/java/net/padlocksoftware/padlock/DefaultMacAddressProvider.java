@@ -70,8 +70,14 @@ public class DefaultMacAddressProvider implements MacAddressProvider {
     DEFAULT_VIRTUAL_ADDRESSES.put("VirtualBox Host", virtualBoxHost);
   }
   
+  static {
+	  // Use the Java API to get the Mac address on Java > 1.5 (< 1.5 is unsupported anyway)
+	  String javaVersion = System.getProperty("java.version");
+	  FORCE_MACADDR_SHELL = javaVersion != null && javaVersion.startsWith("1.5");
+  }
+  
   // do we force using the shell command?
-  private static final boolean FORCE_MACADDR_SHELL = true;
+  private static final boolean FORCE_MACADDR_SHELL;
 
   private enum Platform {
 
@@ -201,15 +207,14 @@ public class DefaultMacAddressProvider implements MacAddressProvider {
       } catch (Exception ex) {
         logger.log(Level.FINE, null, ex);
       }
-
-      // may not have found any
-      if (!addresses.isEmpty()) {
-        return addresses;
-      }
     }
 
-    // otherwise default to JDK1.5 way
-    return useShellToFindAddresses();
+    Set<String> addressesFromShell = useShellToFindAddresses();
+    if (addressesFromShell != null) {
+      addresses.addAll(addressesFromShell);
+    }
+    
+    return addresses;
   }
 
   private Set<String> useShellToFindAddresses() {
